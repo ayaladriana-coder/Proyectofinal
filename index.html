@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Análisis mensual — Bubble Tea Bar Centro</title>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --naranja:#e08a2b; --naranja2:#f0a94a; --naranja3:#b96a12; --crema:#fff7ef;
+    --crema2:#ffe9cf; --marron:#5e3a15; --texto:#33261a; --borde:#f0d5b0;
+    --verde:#2e8b57; --azul:#2e6da4; --rojo:#c0504d;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--crema); color:var(--texto);
+  }
+
+  /* ---------------- menú naranja ---------------- */
+  header.top{
+    background:linear-gradient(135deg,var(--naranja2),var(--naranja) 45%,var(--naranja3));
+    color:#fff; padding:18px 26px 0; box-shadow:0 3px 12px rgba(120,70,10,.18);
+  }
+  .brand{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .brand .logo{flex:0 0 auto;filter:drop-shadow(0 2px 3px rgba(0,0,0,.18))}
+  .brand h1{margin:0;font-size:22px;letter-spacing:.3px}
+  .brand p{margin:5px 0 0;font-size:13px;opacity:.92}
+  nav.menu{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  nav.menu button{
+    border:0;border-radius:11px 11px 0 0;background:rgba(255,255,255,.24);
+    color:#fff;font:inherit;font-size:13.5px;font-weight:600;padding:11px 16px;
+    cursor:pointer;display:flex;align-items:center;gap:9px;transition:.15s;
+    border-bottom:3px solid transparent;
+  }
+  nav.menu button:hover{background:rgba(255,255,255,.38)}
+  nav.menu button.active{
+    background:var(--crema);color:var(--naranja3);border-bottom-color:var(--verde);
+  }
+  nav.menu button .cup{flex:0 0 auto}
+
+  /* ---------------- contenido ---------------- */
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 26px 60px}
+  #drop{
+    border:2px dashed var(--naranja);border-radius:14px;background:#fff;
+    padding:26px;text-align:center;cursor:pointer;transition:.15s;
+  }
+  #drop:hover,#drop.hover{background:var(--crema2);border-color:var(--naranja3)}
+  #drop .big{font-size:16px;font-weight:700;color:var(--naranja3)}
+  #drop .small{font-size:13px;color:#8a7a66;margin-top:6px}
+  #drop code{background:var(--crema2);padding:1px 5px;border-radius:5px;font-size:12px}
+  #file{display:none}
+  #status{font-size:13px;margin:10px 2px 0;color:#8a7a66}
+  #status.ok{color:var(--verde);font-weight:600}
+  #status.err{color:var(--rojo);font-weight:600}
+
+  /* --- segunda zona: detalle del reporte (sabores) --- */
+  .drop-mini{
+    border:2px dashed var(--naranja2);border-radius:12px;background:#fff;
+    padding:15px;text-align:center;cursor:pointer;transition:.15s;margin-top:12px;
+  }
+  .drop-mini:hover,.drop-mini.hover{background:var(--crema2);border-color:var(--naranja3)}
+  .drop-mini .big{font-size:14px;font-weight:700;color:var(--naranja3)}
+  .drop-mini .small{font-size:12.5px;color:#8a7a66;margin-top:4px}
+  .drop-mini.ok{border-style:solid;border-color:var(--verde)}
+  #status-sabores{font-size:12.5px;margin:8px 2px 0;color:#8a7a66}
+  #status-sabores.ok{color:var(--verde);font-weight:600}
+  #status-sabores.err{color:var(--rojo);font-weight:600}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:13px;margin:20px 0 16px}
+  .kpi{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:14px 16px}
+  .kpi .lbl{font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;color:#a4907a}
+  .kpi .val{font-size:22px;font-weight:700;margin-top:5px;color:var(--naranja3)}
+  .kpi .sub{font-size:12px;color:#a4907a;margin-top:2px}
+
+  .card{background:#fff;border:1px solid var(--borde);border-radius:14px;padding:10px 12px 6px}
+  .card h2{font-size:16px;margin:6px 6px 0;color:var(--naranja3)}
+  .card p{margin:3px 6px 0;font-size:12.5px;color:#8a7a66}
+  .chart{height:520px;width:100%}
+  footer{text-align:center;font-size:12px;color:#a4907a;margin-top:26px}
+  .hide{display:none}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <svg class="logo" width="52" height="52" viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M19 20 h26 l-3.4 31.2 a4 4 0 0 1 -4 3.6 h-11.2 a4 4 0 0 1 -4 -3.6 z"
+            fill="#fff7ef" stroke="#5e3a15" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M17.5 28.5 h29" stroke="#e08a2b" stroke-width="2.4"/>
+      <rect x="30.4" y="4" width="3.6" height="18" rx="1.8" fill="#2e8b57"/>
+      <circle cx="26.5" cy="46" r="3.1" fill="#5e3a15"/>
+      <circle cx="34.5" cy="46" r="3.1" fill="#5e3a15"/>
+      <circle cx="30.5" cy="52" r="3.1" fill="#5e3a15"/>
+      <circle cx="24.5" cy="39" r="2.5" fill="#c98a3c"/>
+      <circle cx="36.5" cy="39" r="2.5" fill="#c98a3c"/>
+    </svg>
+    <div>
+      <h1>Análisis mensual — Bubble Tea Bar Centro</h1>
+      <p>Arrastrá el CSV del mes y elegí el gráfico en el menú. Todo corre en el navegador, sin Python ni servidor.</p>
+    </div>
+  </div>
+
+  <nav class="menu" id="menu" role="tablist" aria-label="Gráficos">
+    <button type="button" class="active" data-grafico="dia" role="tab">
+      <svg class="cup" width="17" height="17" viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M19 20h26l-3.4 31a4 4 0 0 1-4 3.6H26.4a4 4 0 0 1-4-3.6z" fill="#fff7ef" stroke="currentColor" stroke-width="5"/>
+        <rect x="30" y="4" width="4" height="18" rx="2" fill="currentColor"/>
+      </svg>
+      Ventas por día
+    </button>
+    <button type="button" data-grafico="vasos" role="tab">
+      <svg class="cup" width="17" height="17" viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M19 20h26l-3.4 31a4 4 0 0 1-4 3.6H26.4a4 4 0 0 1-4-3.6z" fill="#fff7ef" stroke="currentColor" stroke-width="5"/>
+        <circle cx="28" cy="48" r="3.4" fill="currentColor"/><circle cx="36" cy="48" r="3.4" fill="currentColor"/>
+      </svg>
+      Vasos grandes / medianos
+    </button>
+    <button type="button" data-grafico="sabores" role="tab">
+      <svg class="cup" width="17" height="17" viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M19 20h26l-3.4 31a4 4 0 0 1-4 3.6H26.4a4 4 0 0 1-4-3.6z" fill="#fff7ef" stroke="currentColor" stroke-width="5"/>
+        <rect x="30" y="4" width="4" height="18" rx="2" fill="currentColor"/>
+        <circle cx="27" cy="44" r="3" fill="currentColor"/><circle cx="35" cy="44" r="3" fill="currentColor"/>
+      </svg>
+      Sabores más vendidos
+    </button>
+    <button type="button" data-grafico="mejores" role="tab">
+      <svg class="cup" width="17" height="17" viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M19 20h26l-3.4 31a4 4 0 0 1-4 3.6H26.4a4 4 0 0 1-4-3.6z" fill="#fff7ef" stroke="currentColor" stroke-width="5"/>
+        <path d="M32 33l3.6 7.4 8.1 1.2-5.9 5.7 1.4 8.1L32 51.6l-7.2 3.8 1.4-8.1-5.9-5.7 8.1-1.2z" fill="currentColor"/>
+      </svg>
+      Mejores días
+    </button>
+  </nav>
+</header>
+
+<main class="wrap">
+  <div id="drop">
+    <div class="big">Arrastrá y soltá el CSV acá</div>
+    <div class="small">o hacé clic para elegirlo &nbsp;·&nbsp; se espera
+      <code>fecha, dia_semana, seccion, item, cantidad, precio, monto</code><br>
+      (también acepta otras variantes de nombre de columna)</div>
+    <input id="file" type="file" accept=".csv,text/csv">
+  </div>
+  <div id="status">Sin datos cargados todavía.</div>
+
+  <div id="drop-sabores" class="drop-mini">
+    <div class="big">Sabores: arrastrá el detalle del reporte</div>
+    <div class="small">el <b>.xlsx / .xlsm</b> del reporte de variables (se busca solo la hoja <code>Detalle</code>)
+      o un CSV con las columnas <code>sabor</code> y <code>unidades</code><br>
+      opcional: si no lo cargás, el gráfico de sabores usa el CSV del mes</div>
+    <input id="file-sabores" type="file" accept=".xlsx,.xlsm,.xls,.csv,text/csv">
+  </div>
+  <div id="status-sabores">Sin detalle del reporte cargado.</div>
+
+  <section id="panel" class="hide">
+    <div class="kpis" id="kpis"></div>
+    <div class="card">
+      <h2 id="titulo">—</h2>
+      <p id="subtitulo">—</p>
+      <div id="chart" class="chart"></div>
+    </div>
+  </section>
+
+  <footer>Hecho para abrirse directo en el navegador, sin Python · PapaParse + Plotly.js</footer>
+</main>
+
+<script>
+/* ============================================================================
+   Análisis mensual — Bubble Tea Bar Centro
+   Un solo archivo: se abre con doble clic y funciona sin servidor.
+   ========================================================================== */
+(function (global) {
+  "use strict";
+
+  var PALETA = ["#e08a2b", "#5e3a15", "#2e8b57", "#2e6da4", "#c0504d",
+                "#c98a3c", "#7a4a1d", "#f0a94a", "#6b8e23", "#8e6bb0"];
+
+  /* Lista de sabores que se buscan dentro del nombre del ítem cuando el CSV
+     no trae columnas de sabor propias. */
+  var SABORES = ["manzana", "frutos rojos", "arandano", "maracuya", "lychee", "sandia",
+                 "mango", "oreo", "matcha", "macha", "lavanda", "vainilla", "te negro",
+                 "chocolate", "menta", "melon", "frutilla", "taro", "acai", "almendra",
+                 "durazno", "fresa", "cafe", "limon", "coco", "frutos exoticos", "jelly",
+                 "leche condensada", "caramelo", "brown sugar", "natural"];
+
+  var CAMPOS_FECHA = ["fecha", "date", "dia", "fecha venta"];
+  var CAMPOS_MONTO = ["monto", "monto total de la venta", "subtotal de la venta",
+                      "subtotal", "total", "venta", "importe"];
+  var CAMPOS_CANTIDAD = ["cantidad", "cantidad de selecciones", "unidades", "qty", "cant"];
+  var CAMPOS_PRECIO = ["precio", "precio unitario", "precio venta"];
+  var CAMPOS_SECCION = ["seccion", "sector", "categoria", "rubro"];
+  var CAMPOS_ITEM = ["item", "producto", "detalle", "descripcion"];
+  var CAMPOS_DIA = ["dia_semana", "dia semana", "day"];
+  var CAMPOS_SABOR = ["sabor 1", "sabor 2", "sabor_1", "sabor_2", "sabor", "sabores"];
+
+  function norm(s) {
+    return String(s === null || s === undefined ? "" : s)
+      .replace(/\u00a0/g, " ")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .trim().toLowerCase();
+  }
+  function aNumero(v) {
+    if (typeof v === "number") return isFinite(v) ? v : 0;
+    var s = String(v === null || v === undefined ? "" : v).trim();
+    if (!s) return 0;
+    s = s.replace(/[^\d,.\-]/g, "");
+    if (s.indexOf(",") > -1 && s.indexOf(".") > -1) s = s.replace(/\./g, "").replace(",", ".");
+    else if (s.indexOf(",") > -1) s = s.replace(",", ".");
+    var n = parseFloat(s);
+    return isFinite(n) ? n : 0;
+  }
+  function moneda(n) {
+    return "$" + Number(n || 0).toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+  function miles(n) {
+    return Number(n || 0).toLocaleString("es-AR", { maximumFractionDigits: 0 });
+  }
+  function fechaCorta(iso) {
+    var p = String(iso || "").split("-");
+    if (p.length === 3) return p[2] + "/" + p[1];
+    return String(iso || "");
+  }
+  var DIAS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+  function diaSemana(iso) {
+    var p = String(iso || "").split("-");
+    if (p.length !== 3) return "";
+    var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+    return isNaN(d.getTime()) ? "" : DIAS[d.getDay()];
+  }
+
+  /* ---------------- detección de columnas ---------------- */
+  function elegir(cabeceras, candidatos) {
+    for (var i = 0; i < candidatos.length; i++) {
+      if (cabeceras.indexOf(candidatos[i]) > -1) return candidatos[i];
+    }
+    return null;
+  }
+  /* Igual que elegir() pero devuelve la posición de la columna (-1 si no está). */
+  function indiceDe(cabeceras, candidatos) {
+    for (var i = 0; i < candidatos.length; i++) {
+      var k = cabeceras.indexOf(candidatos[i]);
+      if (k > -1) return k;
+    }
+    return -1;
+  }
+  function detectarColumnas(cabeceras) {
+    return {
+      fecha: elegir(cabeceras, CAMPOS_FECHA),
+      monto: elegir(cabeceras, CAMPOS_MONTO),
+      cantidad: elegir(cabeceras, CAMPOS_CANTIDAD),
+      precio: elegir(cabeceras, CAMPOS_PRECIO),
+      seccion: elegir(cabeceras, CAMPOS_SECCION),
+      item: elegir(cabeceras, CAMPOS_ITEM),
+      dia: elegir(cabeceras, CAMPOS_DIA),
+      sabor: elegir(cabeceras, CAMPOS_SABOR),
+      sabores: CAMPOS_SABOR.filter(function (c) { return cabeceras.indexOf(c) > -1; })
+    };
+  }
+
+  /* Si no hay columna de sección, se deduce del nombre del ítem. */
+  function seccionDe(texto) {
+    var t = norm(texto);
+    if (!t) return "";
+    if (t.indexOf("pedidos ya") > -1) return "EXTRAS";
+    if (t.indexOf("grande") > -1) return "GRANDES";
+    if (t.indexOf("mediano") > -1) return "MEDIANOS";
+    if (t.indexOf("mochi") > -1 || t.indexOf("alfajor") > -1) return "PASTELERIA";
+    if (t.indexOf("llavero") > -1 || t.indexOf("sticker") > -1) return "MERCHANDISE";
+    if (t.indexOf("popping") > -1 || t.indexOf("tapioca") > -1 ||
+        t.indexOf("bubblebath") > -1 || t.indexOf("leche") > -1) return "TOPPINGS";
+    return "OTROS";
+  }
+
+  /* ---------------- construcción del dataset ---------------- */
+  function construirDatos(filas, meta) {
+    var cabeceras = Object.keys(filas[0] || {}).map(norm);
+    var col = detectarColumnas(cabeceras);
+    var original = {};
+    Object.keys(filas[0] || {}).forEach(function (k) { original[norm(k)] = k; });
+
+    if (!col.item && !col.monto && !col.cantidad) {
+      throw new Error("No encontré columnas reconocibles. Se espera al menos " +
+                      "item / producto (o monto / cantidad) en el CSV.");
+    }
+
+    var datos = [];
+    filas.forEach(function (f) {
+      function val(campo) { return campo ? f[original[campo]] : undefined; }
+      var item = String(val(col.item) === undefined ? "" : val(col.item)).trim();
+      var cant = col.cantidad ? aNumero(val(col.cantidad)) : 1;
+      var monto = col.monto ? aNumero(val(col.monto)) : 0;
+      if (!monto && col.precio) monto = aNumero(val(col.precio)) * cant;
+      var fecha = String(val(col.fecha) === undefined ? "" : val(col.fecha)).trim();
+      var sec = col.seccion ? String(val(col.seccion) === undefined ? "" : val(col.seccion)).trim() : "";
+      if (!sec) sec = seccionDe(item);
+
+      var sabores = [];
+      col.sabores.forEach(function (c) {
+        String(val(c) === undefined ? "" : val(c)).split("+").forEach(function (s) {
+          var x = s.trim();
+          if (x && x !== "-" && x !== "\u2014") sabores.push(x);
+        });
+      });
+
+      datos.push({
+        fecha: fecha, dia: diaSemana(fecha) || String(val(col.dia) || "").trim(),
+        seccion: sec.toUpperCase(), item: item, cantidad: cant, monto: monto, sabores: sabores
+      });
+    });
+
+    datos = datos.filter(function (r) {
+      return (r.item || r.monto || r.cantidad) && !(r.item === "" && !r.monto);
+    });
+    if (!datos.length) throw new Error("El CSV se leyó pero no quedaron filas con datos.");
+
+    return { filas: datos, columnas: col, cabeceras: cabeceras, archivo: (meta && meta.archivo) || "" };
+  }
+
+  /* ---------------- cálculos ---------------- */
+  function agrupar(filas, clave) {
+    var mapa = {};
+    filas.forEach(function (r) {
+      var k = clave(r);
+      if (k === null || k === undefined || k === "") return;
+      if (!mapa[k]) mapa[k] = { clave: k, monto: 0, cantidad: 0, filas: 0 };
+      mapa[k].monto += r.monto;
+      mapa[k].cantidad += r.cantidad;
+      mapa[k].filas += 1;
+    });
+    return Object.keys(mapa).map(function (k) { return mapa[k]; });
+  }
+  function totales(filas) {
+    return filas.reduce(function (a, r) {
+      a.monto += r.monto; a.cantidad += r.cantidad;
+      a.fechas[r.fecha] = (a.fechas[r.fecha] || 0) + r.monto;
+      a.items[r.item] = (a.items[r.item] || 0) + r.cantidad;
+      return a;
+    }, { monto: 0, cantidad: 0, fechas: {}, items: {} });
+  }
+
+  function porDia(filas) {
+    return agrupar(filas, function (r) { return r.fecha; })
+      .sort(function (a, b) { return String(a.clave).localeCompare(String(b.clave)); });
+  }
+
+  function porTamano(filas) {
+    var g = agrupar(filas, function (r) {
+      if (r.seccion === "GRANDES" || r.seccion === "MEDIANOS") return r.seccion;
+      return null;
+    });
+    var orden = ["GRANDES", "MEDIANOS"];
+    return orden.map(function (s) {
+      var hit = g.filter(function (x) { return x.clave === s; })[0];
+      return hit || { clave: s, monto: 0, cantidad: 0, filas: 0 };
+    });
+  }
+
+  /* Devuelve los sabores más vendidos: usa las columnas de sabor si están,
+     si no busca el nombre del sabor dentro del ítem. */
+  function porSabor(filas, usaColumnas) {
+    var acum = {};
+    if (usaColumnas) {
+      filas.forEach(function (r) {
+        var vistos = {};
+        r.sabores.forEach(function (s) {
+          var k = norm(s);
+          if (!k || vistos[k]) return;
+          vistos[k] = 1;
+          if (!acum[k]) acum[k] = { clave: s, monto: 0, cantidad: 0, filas: 0 };
+          acum[k].monto += r.monto; acum[k].cantidad += r.cantidad; acum[k].filas += 1;
+        });
+      });
+    } else {
+      filas.forEach(function (r) {
+        var t = norm(r.item);
+        if (!t) return;
+        SABORES.forEach(function (s) {
+          if (t.indexOf(s) === -1) return;
+          if (!acum[s]) acum[s] = { clave: s, monto: 0, cantidad: 0, filas: 0 };
+          acum[s].monto += r.monto; acum[s].cantidad += r.cantidad; acum[s].filas += 1;
+        });
+      });
+    }
+    return Object.keys(acum).map(function (k) { return acum[k]; })
+      .sort(function (a, b) { return b.cantidad - a.cantidad || b.monto - a.monto; });
+  }
+
+  function mejoresDias(filas) {
+    return porDia(filas).sort(function (a, b) { return b.monto - a.monto || b.cantidad - a.cantidad; });
+  }
+
+  /* ---------------- fuente de sabores: detalle del reporte ----------------
+     Se acepta el .xlsx/.xlsm del reporte de variables (hoja Detalle) o un CSV
+     con una columna de sabor. Del detalle se leen los pares
+     Nombre Variable N / Variable N y se toman los que sean Sabor / Sabor 1 / Sabor 2. */
+
+  function isoDeFecha(d) {
+    return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+  }
+  function textoFecha(v) {
+    if (v === null || v === undefined || v === "") return "";
+    if (v instanceof Date) return isoDeFecha(v);
+    if (typeof v === "number" && v > 20000000 && v < 60000000) {   // fecha serial de Excel
+      var d = new Date(Date.UTC(1899, 11, 30) + v * 86400000);
+      return d.getUTCFullYear() + "-" + ("0" + (d.getUTCMonth() + 1)).slice(-2) + "-" + ("0" + d.getUTCDate()).slice(-2);
+    }
+    var s = String(v).trim();
+    var m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);   // dia/mes/anio
+    if (m) {
+      var a = m[3].length === 2 ? "20" + m[3] : m[3];
+      return a + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[1]).slice(-2);
+    }
+    m = s.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/);        // anio/mes/dia
+    if (m) return m[1] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[3]).slice(-2);
+    return s;
+  }
+  /* Busca la fila de encabezados del detalle del reporte. */
+  function buscarEncabezado(matriz) {
+    for (var i = 0; i < Math.min(matriz.length, 30); i++) {
+      var f = (matriz[i] || []).map(norm);
+      var hayProducto = f.indexOf("producto") > -1;
+      var hayNombre = f.some(function (c) { return c.indexOf("nombre variable") === 0; });
+      if (hayProducto && hayNombre) return i;
+    }
+    return -1;
+  }
+  function extraerSaboresDeMatriz(matriz, origen) {
+    var h = buscarEncabezado(matriz);
+    if (h > -1) {
+      var cab = (matriz[h] || []).map(norm);
+      var iProd = cab.indexOf("producto"), iCant = cab.indexOf("cantidad");
+      var iFecha = cab.indexOf("fecha"), iPrec = cab.indexOf("precio unitario");
+      var colsNombre = [];
+      cab.forEach(function (c, i) { if (c.indexOf("nombre variable") === 0) colsNombre.push(i); });
+      var filas = [];
+      for (var r = h + 1; r < matriz.length; r++) {
+        var f = matriz[r] || [];
+        if (!f[iProd]) continue;
+        var cant = aNumero(f[iCant]) || 1;
+        var monto = (iPrec === -1 ? 0 : aNumero(f[iPrec])) * cant;
+        var fecha = iFecha === -1 ? "" : textoFecha(f[iFecha]);
+        colsNombre.forEach(function (i) {
+          // mismo criterio que la macro: la variable empieza con "sabor"
+          // (Sabor, Sabor 1, Sabor 2, Sabores...)
+          if (norm(f[i]).indexOf("sabor") !== 0) return;
+          var v = String(f[i + 1] === undefined || f[i + 1] === null ? "" : f[i + 1]).trim();
+          if (!v || v === "-" || v === "\u2014") return;
+          filas.push({ fecha: fecha, sabor: v, unidades: cant, monto: monto });
+        });
+      }
+      if (!filas.length) throw new Error("Encontré la hoja Detalle pero no tenía valores de Sabor.");
+      return filas;
+    }
+    var cab2 = (matriz[0] || []).map(norm);
+    var iSab = indiceDe(cab2, ["sabor", "sabores", "opcion", "variable"]);
+    if (iSab > -1) {
+      var iUni = indiceDe(cab2, ["unidades", "cantidad", "cantidad de selecciones"]);
+      var iMon = indiceDe(cab2, ["monto", "total", "importe"]);
+      var iFec = indiceDe(cab2, ["fecha", "dia"]);
+      var largo = [];
+      for (var r2 = 1; r2 < matriz.length; r2++) {
+        var f2 = matriz[r2] || [];
+        var s = String(f2[iSab] === undefined || f2[iSab] === null ? "" : f2[iSab]).trim();
+        if (!s || s === "-") continue;
+        largo.push({ fecha: iFec < 0 ? "" : textoFecha(f2[iFec]), sabor: s,
+                     unidades: iUni < 0 ? 1 : aNumero(f2[iUni]),
+                     monto: iMon < 0 ? 0 : aNumero(f2[iMon]) });
+      }
+      if (!largo.length) throw new Error("Ese CSV no tiene filas de sabor.");
+      return largo;
+    }
+    throw new Error("No encontré sabores: esperaba la hoja Detalle del reporte " +
+                    "(columnas Producto y Nombre Variable 1) o un CSV con una columna sabor.");
+  }
+  function agruparSabores(filas) {
+    var acum = {};
+    filas.forEach(function (f) {
+      var k = norm(f.sabor);
+      if (!k) return;
+      if (!acum[k]) acum[k] = { clave: String(f.sabor).trim(), cantidad: 0, monto: 0, filas: 0 };
+      acum[k].cantidad += aNumero(f.unidades) || 1;
+      acum[k].monto += aNumero(f.monto);
+      acum[k].filas += 1;
+    });
+    return Object.keys(acum).map(function (k) { return acum[k]; })
+      .sort(function (a, b) { return b.cantidad - a.cantidad || b.monto - a.monto; });
+  }
+  function resumenSabores(filas) {
+    var sabores = {}, unidades = 0;
+    filas.forEach(function (f) { sabores[norm(f.sabor)] = 1; unidades += aNumero(f.unidades) || 1; });
+    return unidades.toLocaleString("es-AR") + " unidades · " + Object.keys(sabores).length + " sabores distintos";
+  }
+
+  /* ---------------- gráficos ---------------- */
+  var LAYOUT_BASE = {
+    margin: { l: 70, r: 70, t: 18, b: 60 },
+    paper_bgcolor: "#fff", plot_bgcolor: "#fffdfa",
+    font: { family: '"Segoe UI",Roboto,Helvetica,Arial,sans-serif', size: 12.5, color: "#33261a" },
+    xaxis: { gridcolor: "#f3e6d3", zeroline: false },
+    yaxis: { gridcolor: "#f3e6d3", zeroline: false },
+    legend: { orientation: "h", y: -0.16, x: 0 }
+  };
+  var CONFIG = { responsive: true, displaylogo: false,
+                 modeBarButtonsToRemove: ["lasso2d", "select2d", "autoScale2d"] };
+
+  function graficoDia(filas) {
+    var d = porDia(filas);
+    var nums = d.filter(function (x) { return x.monto > 0; });
+    var promedio = nums.length ? nums.reduce(function (a, x) { return a + x.monto; }, 0) / nums.length : 0;
+    var trazas = [{
+      type: "bar", name: "Monto vendido", x: d.map(function (r) { return fechaCorta(r.clave); }),
+      y: d.map(function (r) { return r.monto; }), marker: { color: "#e08a2b" },
+      customdata: d.map(function (r) { return [r.cantidad, r.filas]; }),
+      hovertemplate: "<b>%{x}</b><br>Vendido: $%{y:,.0f}<br>Unidades: %{customdata[0]:,.0f}<br>Líneas: %{customdata[1]}<extra></extra>"
+    }];
+    return {
+      titulo: "Ventas por día",
+      subtitulo: "Monto vendido en cada día del mes (la línea punteada es el promedio diario).",
+      trazas: trazas,
+      layout: {
+        shapes: [{ type: "line", xref: "paper", x0: 0, x1: 1, y0: promedio, y1: promedio,
+                   line: { color: "#5e3a15", width: 1.6, dash: "dot" } }],
+        annotations: [{ xref: "paper", x: 1, y: promedio, yref: "y", xanchor: "right", yanchor: "bottom",
+                        text: "promedio " + moneda(promedio), showarrow: false,
+                        font: { size: 11.5, color: "#5e3a15" } }],
+        yaxis: { title: "Monto ($)", gridcolor: "#f3e6d3" },
+        xaxis: { title: "Día", gridcolor: "#f3e6d3" }
+      }
+    };
+  }
+
+  function graficoVasos(filas) {
+    var t = porTamano(filas);
+    var totalU = t.reduce(function (a, x) { return a + x.cantidad; }, 0) || 1;
+    var etiquetas = ["Grandes", "Medianos"];
+    return {
+      titulo: "Ventas por vasos grandes o medianos",
+      subtitulo: "Unidades (barras, eje izquierdo) y monto (puntos, eje derecho) de cada tamaño de vaso.",
+      trazas: [
+        { type: "bar", name: "Unidades", x: etiquetas, y: t.map(function (r) { return r.cantidad; }),
+          marker: { color: ["#e08a2b", "#2e8b57"] }, yaxis: "y",
+          customdata: t.map(function (r) { return (r.cantidad / totalU * 100); }),
+          hovertemplate: "<b>%{x}</b><br>Unidades: %{y:,.0f}<br>%{customdata:.1f}% del total<extra></extra>" },
+        { type: "scatter", mode: "markers+lines", name: "Monto ($)", x: etiquetas,
+          y: t.map(function (r) { return r.monto; }), yaxis: "y2",
+          marker: { size: 14, color: "#5e3a15", line: { color: "#fff", width: 2 } },
+          line: { color: "#5e3a15", dash: "dot" },
+          hovertemplate: "<b>%{x}</b><br>Monto: $%{y:,.0f}<extra></extra>" }
+      ],
+      layout: {
+        yaxis: { title: "Unidades", gridcolor: "#f3e6d3" },
+        yaxis2: { title: "Monto ($)", overlaying: "y", side: "right", showgrid: false, rangemode: "tozero" },
+        xaxis: { title: "" }
+      }
+    };
+  }
+
+  function graficoSabores(datos, externos, limite) {
+    var origen = null, todas = [];
+    if (externos && externos.length) {
+      origen = "detalle del reporte";
+      todas = agruparSabores(externos);
+    } else if (datos) {
+      var usaColumnas = datos.columnas.sabores.length > 0;
+      origen = usaColumnas ? "columnas de sabor del CSV" : "nombres de los ítems del CSV";
+      todas = porSabor(datos.filas, usaColumnas);
+    }
+    var top = todas.slice(0, limite || 12).reverse();
+    if (!top.length) {
+      return { titulo: "Sabores más vendidos",
+               subtitulo: datos ? "No encontré sabores en este CSV."
+                                : "Cargá el CSV del mes o arrastrá el detalle del reporte en la zona de sabores.",
+               trazas: [], layout: { xaxis: { visible: false }, yaxis: { visible: false },
+               annotations: [{ text: "Sin datos de sabor", showarrow: false, font: { size: 16, color: "#a4907a" } }] } };
+    }
+    return {
+      titulo: "Sabores más vendidos",
+      subtitulo: origen === "detalle del reporte"
+        ? "Unidades por sabor, tomadas del detalle del reporte (Sabor / Sabor 1 / Sabor 2)."
+        : (origen === "columnas de sabor del CSV"
+            ? "Unidades por sabor, tomadas de las columnas de sabor del CSV."
+            : "Unidades de los ítems que llevan el nombre del sabor (Popping, Oreo, etc.). " +
+              "Para el ranking real, arrastrá el detalle del reporte en la zona de sabores."),
+      trazas: [{
+        type: "bar", orientation: "h", x: top.map(function (r) { return r.cantidad; }),
+        y: top.map(function (r) { return r.clave.charAt(0).toUpperCase() + r.clave.slice(1); }),
+        marker: { color: top.map(function (r, i) { return PALETA[i % PALETA.length]; }) },
+        customdata: top.map(function (r) { return r.monto; }),
+        hovertemplate: "<b>%{y}</b><br>Unidades: %{x:,.0f}<br>Monto: $%{customdata:,.0f}<extra></extra>"
+      }],
+      layout: { xaxis: { title: "Unidades", gridcolor: "#f3e6d3" },
+                yaxis: { automargin: true }, margin: { l: 150, r: 40, t: 18, b: 60 }, showlegend: false }
+    };
+  }
+
+  function graficoMejores(filas, limite) {
+    var dias = mejoresDias(filas);
+    var top = dias.slice(0, limite || 8).reverse();
+    var promedio = dias.length ? dias.reduce(function (a, x) { return a + x.monto; }, 0) / dias.length : 0;
+    return {
+      titulo: "Mejores días del mes",
+      subtitulo: "Días ordenados por monto vendido (arriba los mejores). La línea punteada es el promedio diario.",
+      trazas: [{
+        type: "bar", orientation: "h",
+        x: top.map(function (r) { return r.monto; }),
+        y: top.map(function (r) { return fechaCorta(r.clave) + " · " + (r.filas ? diaSemana(r.clave) : ""); }),
+        marker: { color: top.map(function (r) { return r.monto >= promedio ? "#2e8b57" : "#e08a2b"; }) },
+        customdata: top.map(function (r) { return [r.cantidad, r.filas]; }),
+        hovertemplate: "<b>%{y}</b><br>Vendido: $%{x:,.0f}<br>Unidades: %{customdata[0]:,.0f}<br>Líneas: %{customdata[1]}<extra></extra>"
+      }],
+      layout: {
+        xaxis: { title: "Monto ($)", gridcolor: "#f3e6d3" },
+        yaxis: { automargin: true },
+        margin: { l: 170, r: 40, t: 18, b: 60 }, showlegend: false,
+        shapes: [{ type: "line", x0: promedio, x1: promedio, yref: "paper", y0: 0, y1: 1,
+                   line: { color: "#5e3a15", width: 1.6, dash: "dot" } }],
+        annotations: [{ x: promedio, y: 1, yref: "paper", xanchor: "left", yanchor: "bottom",
+                        text: " promedio " + moneda(promedio), showarrow: false,
+                        font: { size: 11.5, color: "#5e3a15" } }]
+      }
+    };
+  }
+
+  function calcular(datos, tipo, saboresExternos) {
+    if (tipo === "sabores") return graficoSabores(datos, saboresExternos);
+    if (!datos) throw new Error("Para este gráfico primero cargá el CSV del mes.");
+    if (tipo === "vasos") return graficoVasos(datos.filas);
+    if (tipo === "mejores") return graficoMejores(datos.filas);
+    return graficoDia(datos.filas);
+  }
+
+  /* ---------------- interfaz ---------------- */
+  var estado = { datos: null, sabores: null, tipo: "dia" };
+
+  function kpis(datos) {
+    var t = totales(datos.filas);
+    var dias = Object.keys(t.fechas).length || 1;
+    var mejor = mejoresDias(datos.filas)[0];
+    var mejoresItems = Object.keys(t.items).sort(function (a, b) { return t.items[b] - t.items[a]; });
+    return [
+      ["Vendido en el mes", moneda(t.monto), (datos.archivo || "")],
+      ["Unidades", miles(t.cantidad), "en " + dias + " días con datos"],
+      ["Promedio por día", moneda(t.monto / dias), "sobre los días cargados"],
+      ["Mejor día", mejor ? fechaCorta(mejor.clave) : "—",
+       mejor ? (moneda(mejor.monto) + " · " + diaSemana(mejor.clave)) : ""],
+      ["Ítem más vendido", (mejoresItems[0] || "—"),
+       mejoresItems[0] ? (miles(t.items[mejoresItems[0]]) + " unidades") : ""]
+    ];
+  }
+
+  function pintaKpis(datos) {
+    var caja = document.getElementById("kpis");
+    caja.innerHTML = "";
+    kpis(datos).forEach(function (k) {
+      var d = document.createElement("div");
+      d.className = "kpi";
+      d.innerHTML = '<div class="lbl"></div><div class="val"></div><div class="sub"></div>';
+      d.querySelector(".lbl").textContent = k[0];
+      d.querySelector(".val").textContent = k[1];
+      d.querySelector(".sub").textContent = k[2];
+      caja.appendChild(d);
+    });
+  }
+
+  function dibujar() {
+    if (!estado.datos && !(estado.tipo === "sabores" && estado.sabores)) return;
+    var g;
+    try {
+      g = calcular(estado.datos, estado.tipo, estado.sabores);
+    } catch (e) {
+      document.getElementById("titulo").textContent = "—";
+      document.getElementById("subtitulo").textContent = e.message;
+      if (typeof Plotly !== "undefined") Plotly.purge("chart");
+      return;
+    }
+    document.getElementById("titulo").textContent = g.titulo;
+    document.getElementById("subtitulo").textContent = g.subtitulo;
+    var layout = Object.assign({}, LAYOUT_BASE, g.layout || {});
+    layout.xaxis = Object.assign({}, LAYOUT_BASE.xaxis, (g.layout || {}).xaxis || {});
+    layout.yaxis = Object.assign({}, LAYOUT_BASE.yaxis, (g.layout || {}).yaxis || {});
+    if ((g.layout || {}).yaxis2) layout.yaxis2 = g.layout.yaxis2;
+    if ((g.layout || {}).shapes) layout.shapes = g.layout.shapes;
+    if ((g.layout || {}).annotations) {
+      layout.annotations = ((g.layout || {}).annotations || []).concat(
+        g.trazas.length ? [] : (g.layout || {}).annotations);
+    }
+    Plotly.react("chart", g.trazas, layout, CONFIG);
+  }
+
+  function mostrarDatos(datos) {
+    estado.datos = datos;
+    document.getElementById("panel").classList.remove("hide");
+    pintaKpis(datos);
+    dibujar();
+  }
+
+  function marcarBoton() {
+    Array.prototype.forEach.call(document.querySelectorAll("#menu button"), function (o) {
+      o.classList.toggle("active", o.getAttribute("data-grafico") === estado.tipo);
+    });
+  }
+
+  /* ---- segunda zona: sabores desde el detalle del reporte ---- */
+  function cargarSabores(archivo) {
+    var st = document.getElementById("status-sabores");
+    var zona = document.getElementById("drop-sabores");
+    var nombre = String(archivo.name || "").toLowerCase();
+    var esExcel = /\.(xlsx|xlsm|xls)$/.test(nombre);
+
+    function error(msg) { st.className = "err"; st.textContent = "No pude usar ese archivo: " + msg; }
+    function listo(filas) {
+      estado.sabores = filas;
+      zona.classList.add("ok");
+      st.className = "ok";
+      st.textContent = "Sabores del detalle del reporte: " + resumenSabores(filas) +
+                       "  ·  " + archivo.name;
+      if (!estado.datos) {
+        estado.tipo = "sabores";
+        document.getElementById("panel").classList.remove("hide");
+      }
+      marcarBoton();
+      dibujar();
+    }
+
+    st.className = "";
+    st.textContent = "Leyendo " + archivo.name + "…";
+
+    if (!esExcel) {
+      Papa.parse(archivo, {
+        header: false, dynamicTyping: true, skipEmptyLines: true,
+        complete: function (res) {
+          try { listo(extraerSaboresDeMatriz(res.data, archivo.name)); } catch (e) { error(e.message); }
+        },
+        error: function (err) { error(err.message); }
+      });
+      return;
+    }
+    if (typeof XLSX === "undefined") {
+      error("falta la librería SheetJS para leer Excel (revisá la conexión).");
+      return;
+    }
+    var fr = new FileReader();
+    fr.onerror = function () { error("no pude leer el archivo."); };
+    fr.onload = function (ev) {
+      try {
+        var libro = XLSX.read(new Uint8Array(ev.target.result), { type: "array", cellDates: true });
+        var orden = libro.SheetNames.slice().sort(function (a, b) {
+          return (/detalle/i.test(b) ? 1 : 0) - (/detalle/i.test(a) ? 1 : 0);
+        });
+        var matriz = null;
+        for (var i = 0; i < orden.length && !matriz; i++) {
+          var m = XLSX.utils.sheet_to_json(libro.Sheets[orden[i]],
+                      { header: 1, raw: true, defval: "", blankrows: false });
+          if (buscarEncabezado(m) > -1) matriz = m;
+        }
+        if (!matriz) throw new Error("no encontré la hoja Detalle (columnas Producto y Nombre Variable 1).");
+        listo(extraerSaboresDeMatriz(matriz, archivo.name));
+      } catch (e) { error(e.message); }
+    };
+    fr.readAsArrayBuffer(archivo);
+  }
+
+  function cargarArchivo(archivo) {
+    var st = document.getElementById("status");
+    st.className = "";
+    st.textContent = "Leyendo " + archivo.name + "…";
+    Papa.parse(archivo, {
+      header: true, dynamicTyping: true, skipEmptyLines: true, encoding: "UTF-8",
+      complete: function (res) {
+        try {
+          if (!res.data || !res.data.length) throw new Error("El CSV no tiene filas.");
+          var datos = construirDatos(res.data, { archivo: archivo.name });
+          var avisos = [];
+          if (!datos.columnas.fecha) avisos.push("no encontré columna de fecha");
+          if (!datos.columnas.monto) avisos.push("no encontré columna de monto");
+          if (!datos.columnas.sabores.length) avisos.push("sin columnas de sabor (uso los ítems)");
+          st.className = "ok";
+          st.textContent = "Listo: " + datos.filas.length + " filas leídas de " + archivo.name +
+                           (avisos.length ? "  (" + avisos.join("; ") + ")" : "");
+          mostrarDatos(datos);
+        } catch (e) {
+          st.className = "err";
+          st.textContent = "No pude usar el archivo: " + e.message;
+        }
+      },
+      error: function (err) {
+        st.className = "err";
+        st.textContent = "Error leyendo el CSV: " + err.message;
+      }
+    });
+  }
+
+  global.AnalisisMensual = {           // expuesto para pruebas
+    norm: norm, construirDatos: construirDatos, calcular: calcular,
+    porDia: porDia, porTamano: porTamano, porSabor: porSabor, mejoresDias: mejoresDias,
+    totales: totales, kpis: kpis, SABORES: SABORES,
+    buscarEncabezado: buscarEncabezado, extraerSaboresDeMatriz: extraerSaboresDeMatriz,
+    agruparSabores: agruparSabores, resumenSabores: resumenSabores
+  };
+
+  if (typeof document !== "undefined" && document.getElementById) {
+    function prepararZona(idZona, idInput, alCargar) {
+      var zona = document.getElementById(idZona);
+      var inp = document.getElementById(idInput);
+      zona.addEventListener("click", function () { inp.click(); });
+      ["dragenter", "dragover"].forEach(function (ev) {
+        zona.addEventListener(ev, function (e) { e.preventDefault(); zona.classList.add("hover"); });
+      });
+      ["dragleave", "drop"].forEach(function (ev) {
+        zona.addEventListener(ev, function (e) { e.preventDefault(); zona.classList.remove("hover"); });
+      });
+      zona.addEventListener("drop", function (e) {
+        var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) alCargar(f);
+      });
+      inp.addEventListener("change", function () {
+        if (inp.files && inp.files[0]) alCargar(inp.files[0]);
+      });
+    }
+    prepararZona("drop", "file", cargarArchivo);
+    prepararZona("drop-sabores", "file-sabores", cargarSabores);
+
+    Array.prototype.forEach.call(document.querySelectorAll("#menu button"), function (b) {
+      b.addEventListener("click", function () {
+        Array.prototype.forEach.call(document.querySelectorAll("#menu button"), function (o) {
+          o.classList.toggle("active", o === b);
+        });
+        estado.tipo = b.getAttribute("data-grafico");
+        dibujar();
+      });
+    });
+  }
+})(typeof window !== "undefined" ? window : this);
+</script>
+</body>
+</html>
