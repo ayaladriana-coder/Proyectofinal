@@ -75,6 +75,47 @@
   .kpi .val{font-size:22px;font-weight:700;margin-top:5px;color:var(--naranja3)}
   .kpi .sub{font-size:12px;color:#a4907a;margin-top:2px}
 
+  /* ---------------- filtros dinámicos ---------------- */
+  .filtros{background:#fff;border:1px solid var(--borde);border-radius:14px;padding:14px 16px;margin:0 0 16px}
+  .filtros .fila{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end}
+  .filtros .fila + .fila{margin-top:12px;align-items:center}
+  .filtros .campo{display:flex;flex-direction:column;gap:4px}
+  .filtros .et{font-size:11.5px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:#a4907a}
+  .filtros select,.filtros input[type=date]{
+    font:inherit;font-size:13.5px;font-weight:400;color:var(--texto);background:#fffdfa;
+    border:1px solid var(--borde);border-radius:9px;padding:7px 10px;min-width:150px}
+  .filtros select:focus,.filtros input:focus{outline:2px solid var(--naranja2);outline-offset:1px}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{border:1px solid var(--borde);background:#fffdfa;color:#8a7a66;border-radius:999px;padding:6px 13px;
+    font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s}
+  .chip:hover{background:var(--crema2)}
+  .chip.on{background:var(--naranja);border-color:var(--naranja3);color:#fff}
+  .filtros .resumen{font-size:12.5px;color:#8a7a66}
+  .filtros .espacio{flex:1}
+  .filtros button.accion{border:1px solid var(--borde);background:#fffdfa;border-radius:9px;padding:8px 14px;
+    font:inherit;font-size:13px;font-weight:600;color:var(--naranja3);cursor:pointer}
+  .filtros button.accion:hover{background:var(--crema2)}
+
+  /* ---------------- tabla exploratoria ---------------- */
+  .tabla-card{margin-top:16px}
+  .tabla-card .cabeza{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;justify-content:space-between;margin:6px 6px 10px}
+  .tabla-card .cabeza h2{margin:0 0 2px}
+  .tabla-card .cabeza p{margin:0 0 2px;font-size:12.5px;color:#8a7a66}
+  .tabla-card .campo{display:flex;flex-direction:column;gap:4px}
+  .tabla-card .et{font-size:11.5px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:#a4907a}
+  .tabla-card input[type=search]{font:inherit;font-size:13.5px;color:var(--texto);background:#fffdfa;
+    border:1px solid var(--borde);border-radius:9px;padding:7px 10px;min-width:200px}
+  .tabla-scroll{overflow:auto;max-height:460px;border:1px solid var(--borde);border-radius:10px}
+  table.exploratoria{border-collapse:collapse;width:100%;font-size:13px}
+  table.exploratoria th,table.exploratoria td{padding:9px 12px;border-bottom:1px solid #f6ead9;text-align:left;white-space:nowrap}
+  table.exploratoria thead th{position:sticky;top:0;background:var(--crema2);color:var(--naranja3);font-size:11.5px;
+    text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;z-index:1}
+  table.exploratoria th.num,table.exploratoria td.num{text-align:right}
+  table.exploratoria thead th .fl{margin-left:4px;color:#c9a06a}
+  table.exploratoria tbody tr:hover{background:#fff7ef}
+  .barra-pct{display:inline-block;height:8px;border-radius:4px;background:var(--naranja2);vertical-align:middle;margin-right:7px}
+  .tabla-card .pie{margin:8px 6px 4px;font-size:12.5px;color:#8a7a66}
+
   .card{background:#fff;border:1px solid var(--borde);border-radius:14px;padding:10px 12px 6px}
   .card h2{font-size:16px;margin:6px 6px 0;color:var(--naranja3)}
   .card p{margin:3px 6px 0;font-size:12.5px;color:#8a7a66}
@@ -100,7 +141,7 @@
     </svg>
     <div>
       <h1>Análisis mensual — Bubble Tea Bar Centro</h1>
-      <p>Arrastrá el CSV del mes y elegí el gráfico en el menú. Todo corre en el navegador, sin Python ni servidor.</p>
+      <p>Arrastrá el CSV del mes: filtrá por departamento, sección, ítem, día o fecha, y mirá los KPIs, los gráficos y la tabla exploratoria. Todo corre en el navegador, sin Python ni servidor.</p>
     </div>
   </div>
 
@@ -134,6 +175,20 @@
       </svg>
       Mejores días
     </button>
+    <button type="button" data-grafico="departamento" role="tab">
+      <svg class="cup" width="17" height="17" viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M19 20h26l-3.4 31a4 4 0 0 1-4 3.6H26.4a4 4 0 0 1-4-3.6z" fill="#fff7ef" stroke="currentColor" stroke-width="5"/>
+        <path d="M32 30v20M22 40h20" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      Por departamento
+    </button>
+    <button type="button" data-grafico="seccion" role="tab">
+      <svg class="cup" width="17" height="17" viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M19 20h26l-3.4 31a4 4 0 0 1-4 3.6H26.4a4 4 0 0 1-4-3.6z" fill="#fff7ef" stroke="currentColor" stroke-width="5"/>
+        <path d="M24 34h16M24 42h16M24 50h10" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/>
+      </svg>
+      Por sección
+    </button>
   </nav>
 </header>
 
@@ -157,11 +212,51 @@
   <div id="status-sabores">Sin detalle del reporte cargado.</div>
 
   <section id="panel" class="hide">
+    <div class="filtros" id="filtros">
+      <div class="fila">
+        <div class="campo"><span class="et">Departamento</span>
+          <select id="f-departamento"></select></div>
+        <div class="campo"><span class="et">Segmento (sección)</span>
+          <select id="f-seccion"></select></div>
+        <div class="campo"><span class="et">Ítem</span>
+          <select id="f-item"></select></div>
+        <div class="campo"><span class="et">Desde</span>
+          <input type="date" id="f-desde"></div>
+        <div class="campo"><span class="et">Hasta</span>
+          <input type="date" id="f-hasta"></div>
+      </div>
+      <div class="fila">
+        <div class="campo"><span class="et">Día de la semana</span>
+          <div class="chips" id="f-dias"></div></div>
+      </div>
+      <div class="fila">
+        <span class="resumen" id="f-resumen">—</span>
+        <span class="espacio"></span>
+        <button type="button" class="accion" id="f-limpiar">Limpiar filtros</button>
+      </div>
+    </div>
     <div class="kpis" id="kpis"></div>
     <div class="card">
       <h2 id="titulo">—</h2>
       <p id="subtitulo">—</p>
       <div id="chart" class="chart"></div>
+    </div>
+    <div class="card tabla-card">
+      <div class="cabeza">
+        <div>
+          <h2>Tabla exploratoria</h2>
+          <p id="tabla-sub">—</p>
+        </div>
+        <div class="campo"><span class="et">Buscar ítem</span>
+          <input type="search" id="tabla-buscar" placeholder="ej. Grande, Mochi…"></div>
+      </div>
+      <div class="tabla-scroll">
+        <table class="exploratoria" id="tabla">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="pie" id="tabla-pie">—</div>
     </div>
   </section>
 
@@ -230,6 +325,44 @@
     if (p.length !== 3) return "";
     var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
     return isNaN(d.getTime()) ? "" : DIAS[d.getDay()];
+  }
+
+  /* Departamentos: agrupan las secciones del archivo en dos niveles
+     (departamento → segmento/sección). */
+  var DEPARTAMENTOS = [
+    ["Bebidas", ["GRANDES", "MEDIANOS"]],
+    ["Complementos", ["TOPPINGS", "EXTRAS", "BUBBLEBATH"]],
+    ["Pastelería", ["PASTELERIA"]],
+    ["Merchandise", ["MERCHANDISE"]]
+  ];
+  function departamentoDe(seccion) {
+    var s = String(seccion || "").toUpperCase();
+    for (var i = 0; i < DEPARTAMENTOS.length; i++) {
+      if (DEPARTAMENTOS[i][1].indexOf(s) > -1) return DEPARTAMENTOS[i][0];
+    }
+    return "Otros";
+  }
+
+  /* ---------------- filtros dinámicos ---------------- */
+  var filtros = { departamento: "", seccion: "", item: "", dias: {}, desde: "", hasta: "" };
+
+  function aplicarFiltros(filas, f) {
+    f = f || filtros;
+    return filas.filter(function (r) {
+      if (f.departamento && departamentoDe(r.seccion) !== f.departamento) return false;
+      if (f.seccion && r.seccion !== f.seccion) return false;
+      if (f.item && r.item !== f.item) return false;
+      if (f.desde && r.fecha && r.fecha < f.desde) return false;
+      if (f.hasta && r.fecha && r.fecha > f.hasta) return false;
+      var d = r.dia || diaSemana(r.fecha);
+      if (f.dias && Object.keys(f.dias).length && !f.dias[d]) return false;
+      return true;
+    });
+  }
+  function hayFiltros(f) {
+    f = f || filtros;
+    return !!(f.departamento || f.seccion || f.item || f.desde || f.hasta ||
+              (f.dias && Object.keys(f.dias).length));
   }
 
   /* ---------------- detección de columnas ---------------- */
@@ -340,6 +473,34 @@
       a.items[r.item] = (a.items[r.item] || 0) + r.cantidad;
       return a;
     }, { monto: 0, cantidad: 0, fechas: {}, items: {} });
+  }
+
+  /* Tabla exploratoria: una fila por ítem con unidades, monto y participación. */
+  function tablaExploradora(filas) {
+    var mapa = {};
+    filas.forEach(function (r) {
+      if (!r.item) return;
+      if (!mapa[r.item]) mapa[r.item] = { item: r.item, seccion: r.seccion, unidades: 0, monto: 0, lineas: 0 };
+      mapa[r.item].unidades += r.cantidad;
+      mapa[r.item].monto += r.monto;
+      mapa[r.item].lineas += 1;
+    });
+    var lista = Object.keys(mapa).map(function (k) {
+      var x = mapa[k];
+      x.departamento = departamentoDe(x.seccion);
+      return x;
+    });
+    var totalM = lista.reduce(function (a, x) { return a + x.monto; }, 0) || 1;
+    var totalU = lista.reduce(function (a, x) { return a + x.unidades; }, 0) || 1;
+    lista.sort(function (a, b) { return b.monto - a.monto || b.unidades - a.unidades; });
+    var acumulado = 0;
+    lista.forEach(function (x) {
+      x.pctMonto = x.monto / totalM * 100;
+      x.pctUnidades = x.unidades / totalU * 100;
+      acumulado += x.pctMonto;
+      x.pctAcum = acumulado;
+    });
+    return lista;
   }
 
   function porDia(filas) {
@@ -625,37 +786,96 @@
     };
   }
 
-  function calcular(datos, tipo, saboresExternos) {
+  /* Dos gráficos analíticos por dimensión: sección y departamento. */
+  function graficoPorSeccion(filas) {
+    var g = agrupar(filas, function (r) { return r.seccion; })
+      .sort(function (a, b) { return b.monto - a.monto; });
+    var totM = g.reduce(function (a, x) { return a + x.monto; }, 0) || 1;
+    var top = g.slice(0, 12).reverse();
+    return {
+      titulo: "Ventas por segmento (sección)",
+      subtitulo: "Monto vendido en cada sección del archivo, de mayor a menor.",
+      trazas: [{
+        type: "bar", orientation: "h",
+        x: top.map(function (r) { return r.monto; }),
+        y: top.map(function (r) { return String(r.clave || "").toLowerCase(); }),
+        marker: { color: top.map(function (r, i) { return PALETA[i % PALETA.length]; }) },
+        customdata: top.map(function (r) { return [r.cantidad, r.monto / totM * 100]; }),
+        hovertemplate: "<b>%{y}</b><br>Monto: $%{x:,.0f}<br>Unidades: %{customdata[0]:,.0f}<br>%{customdata[1]:.1f}% del total<extra></extra>"
+      }],
+      layout: { xaxis: { title: "Monto ($)", gridcolor: "#f3e6d3" },
+                yaxis: { automargin: true }, margin: { l: 130, r: 40, t: 18, b: 60 }, showlegend: false }
+    };
+  }
+
+  function graficoPorDepartamento(filas) {
+    var g = agrupar(filas, function (r) { return departamentoDe(r.seccion); })
+      .sort(function (a, b) { return b.monto - a.monto; });
+    return {
+      titulo: "Participación por departamento",
+      subtitulo: "Reparto del monto vendido entre los departamentos (bebidas, complementos, pastelería, merchandise).",
+      trazas: [{
+        type: "pie", hole: 0.45,
+        labels: g.map(function (r) { return r.clave; }),
+        values: g.map(function (r) { return r.monto; }),
+        textinfo: "label+percent", textposition: "inside",
+        marker: { colors: g.map(function (r, i) { return PALETA[i % PALETA.length]; }),
+                  line: { color: "#fff", width: 2 } },
+        customdata: g.map(function (r) { return r.cantidad; }),
+        hovertemplate: "<b>%{label}</b><br>Monto: $%{value:,.0f}<br>%{percent}<br>Unidades: %{customdata:,.0f}<extra></extra>"
+      }],
+      layout: { showlegend: true, legend: { orientation: "h", y: -0.08 },
+                xaxis: { visible: false }, yaxis: { visible: false },
+                margin: { l: 30, r: 30, t: 18, b: 40 } }
+    };
+  }
+
+  function calcular(datos, tipo, saboresExternos, filas) {
+    var base = filas || (datos && datos.filas) || [];
     if (tipo === "sabores") return graficoSabores(datos, saboresExternos);
     if (!datos) throw new Error("Para este gráfico primero cargá el CSV del mes.");
-    if (tipo === "vasos") return graficoVasos(datos.filas);
-    if (tipo === "mejores") return graficoMejores(datos.filas);
-    return graficoDia(datos.filas);
+    if (tipo === "vasos") return graficoVasos(base);
+    if (tipo === "mejores") return graficoMejores(base);
+    if (tipo === "departamento") return graficoPorDepartamento(base);
+    if (tipo === "seccion") return graficoPorSeccion(base);
+    return graficoDia(base);
   }
 
   /* ---------------- interfaz ---------------- */
-  var estado = { datos: null, sabores: null, tipo: "dia" };
+  var estado = { datos: null, sabores: null, tipo: "dia", filasFiltradas: null };
 
-  function kpis(datos) {
-    var t = totales(datos.filas);
+  /* KPIs: se recalculan sobre las filas que pasan los filtros. */
+  function kpis(datos, filas) {
+    filas = filas || (datos && datos.filas) || [];
+    var t = totales(filas);
     var dias = Object.keys(t.fechas).length || 1;
-    var mejor = mejoresDias(datos.filas)[0];
-    var mejoresItems = Object.keys(t.items).sort(function (a, b) { return t.items[b] - t.items[a]; });
+    var mejor = mejoresDias(filas)[0];
+    var itemsOrden = Object.keys(t.items).sort(function (a, b) { return t.items[b] - t.items[a]; });
+    var porSec = agrupar(filas, function (r) { return r.seccion; })
+      .sort(function (a, b) { return b.monto - a.monto; });
+    var seccionTop = porSec[0];
+    var filtrado = hayFiltros() || !!(datos && filas.length !== datos.filas.length);
     return [
-      ["Vendido en el mes", moneda(t.monto), (datos.archivo || "")],
+      ["Vendido", moneda(t.monto),
+       filtrado ? "con los filtros aplicados" : ((datos && datos.archivo) || "")],
       ["Unidades", miles(t.cantidad), "en " + dias + " días con datos"],
-      ["Promedio por día", moneda(t.monto / dias), "sobre los días cargados"],
+      ["Promedio por día", moneda(t.monto / dias), "sobre los días filtrados"],
+      ["Ticket por unidad", moneda(t.cantidad ? t.monto / t.cantidad : 0), "monto ÷ unidades"],
       ["Mejor día", mejor ? fechaCorta(mejor.clave) : "—",
        mejor ? (moneda(mejor.monto) + " · " + diaSemana(mejor.clave)) : ""],
-      ["Ítem más vendido", (mejoresItems[0] || "—"),
-       mejoresItems[0] ? (miles(t.items[mejoresItems[0]]) + " unidades") : ""]
+      ["Ítem más vendido", (itemsOrden[0] || "—"),
+       itemsOrden[0] ? (miles(t.items[itemsOrden[0]]) + " unidades") : ""],
+      ["Segmento más vendido", seccionTop ? String(seccionTop.clave).toLowerCase() : "—",
+       seccionTop ? moneda(seccionTop.monto) : ""],
+      ["Ítems distintos", miles(Object.keys(t.items).length), "en el filtro actual"]
     ];
   }
 
-  function pintaKpis(datos) {
+  function pintaKpis() {
     var caja = document.getElementById("kpis");
+    if (!caja) return;
     caja.innerHTML = "";
-    kpis(datos).forEach(function (k) {
+    kpis(estado.datos, estado.filasFiltradas).forEach(function (k) {
       var d = document.createElement("div");
       d.className = "kpi";
       d.innerHTML = '<div class="lbl"></div><div class="val"></div><div class="sub"></div>';
@@ -670,7 +890,8 @@
     if (!estado.datos && !(estado.tipo === "sabores" && estado.sabores)) return;
     var g;
     try {
-      g = calcular(estado.datos, estado.tipo, estado.sabores);
+      g = calcular(estado.datos, estado.tipo, saboresFiltrados(),
+                   estado.datos ? (estado.filasFiltradas || estado.datos.filas) : null);
     } catch (e) {
       document.getElementById("titulo").textContent = "—";
       document.getElementById("subtitulo").textContent = e.message;
@@ -693,15 +914,234 @@
 
   function mostrarDatos(datos) {
     estado.datos = datos;
+    estado.filasFiltradas = datos.filas;
     document.getElementById("panel").classList.remove("hide");
-    pintaKpis(datos);
+    armarFiltros();
+    refrescar();
+  }
+
+  /* Recalcula todo lo que depende de los filtros. */
+  function refrescar() {
+    if (!estado.datos) return;
+    estado.filasFiltradas = aplicarFiltros(estado.datos.filas, filtros);
+    pintaKpis();
+    resumenFiltros();
     dibujar();
+    pintarTabla();
+  }
+
+  /* El detalle de sabores no trae sección, así que solo se filtra por fecha. */
+  function saboresFiltrados() {
+    var s = estado.sabores;
+    if (!s || (!filtros.desde && !filtros.hasta)) return s;
+    return s.filter(function (f) {
+      if (!f.fecha) return true;
+      if (filtros.desde && f.fecha < filtros.desde) return false;
+      if (filtros.hasta && f.fecha > filtros.hasta) return false;
+      return true;
+    });
   }
 
   function marcarBoton() {
     Array.prototype.forEach.call(document.querySelectorAll("#menu button"), function (o) {
       o.classList.toggle("active", o.getAttribute("data-grafico") === estado.tipo);
     });
+  }
+
+  /* ---- filtros: opciones en cascada y eventos ---- */
+  function rellenarSelect(sel, opciones, etiquetaTodos) {
+    if (!sel) return;
+    sel.innerHTML = "";
+    var o0 = document.createElement("option");
+    o0.value = ""; o0.textContent = etiquetaTodos;
+    sel.appendChild(o0);
+    opciones.forEach(function (v) {
+      var o = document.createElement("option");
+      o.value = v; o.textContent = v;
+      sel.appendChild(o);
+    });
+    sel.value = "";
+  }
+  function opcionesDepartamentos() {
+    var set = {};
+    estado.datos.filas.forEach(function (r) { set[departamentoDe(r.seccion)] = 1; });
+    return Object.keys(set).sort();
+  }
+  function opcionesSecciones() {
+    var set = {};
+    estado.datos.filas.forEach(function (r) {
+      if (filtros.departamento && departamentoDe(r.seccion) !== filtros.departamento) return;
+      if (r.seccion) set[r.seccion] = 1;
+    });
+    return Object.keys(set).sort();
+  }
+  function opcionesItems() {
+    var set = {};
+    estado.datos.filas.forEach(function (r) {
+      if (filtros.departamento && departamentoDe(r.seccion) !== filtros.departamento) return;
+      if (filtros.seccion && r.seccion !== filtros.seccion) return;
+      if (r.item) set[r.item] = 1;
+    });
+    return Object.keys(set).sort(function (a, b) { return a.localeCompare(b, "es"); });
+  }
+  function pintarDias() {
+    var cont = document.getElementById("f-dias");
+    if (!cont) return;
+    cont.innerHTML = "";
+    var set = {};
+    estado.datos.filas.forEach(function (r) { var d = r.dia || diaSemana(r.fecha); if (d) set[d] = 1; });
+    DIAS.filter(function (d) { return set[d]; }).forEach(function (d) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip" + (filtros.dias[d] ? " on" : "");
+      b.textContent = d;
+      b.addEventListener("click", function () {
+        if (filtros.dias[d]) delete filtros.dias[d]; else filtros.dias[d] = 1;
+        b.classList.toggle("on", !!filtros.dias[d]);
+        refrescar();
+      });
+      cont.appendChild(b);
+    });
+  }
+  function armarFiltros() {
+    var sd = document.getElementById("f-departamento");
+    rellenarSelect(sd, opcionesDepartamentos(), "Todos");
+    sd.value = filtros.departamento;
+    sd.onchange = function () {
+      filtros.departamento = sd.value; filtros.seccion = ""; filtros.item = "";
+      armarFiltros(); refrescar();
+    };
+    var ss = document.getElementById("f-seccion");
+    rellenarSelect(ss, opcionesSecciones(), "Todas");
+    ss.value = filtros.seccion;
+    ss.onchange = function () {
+      filtros.seccion = ss.value; filtros.item = "";
+      armarFiltros(); refrescar();
+    };
+    var si = document.getElementById("f-item");
+    rellenarSelect(si, opcionesItems(), "Todos");
+    si.value = filtros.item;
+    si.onchange = function () { filtros.item = si.value; refrescar(); };
+    var de = document.getElementById("f-desde"), ha = document.getElementById("f-hasta");
+    if (de && ha && estado.datos.filas.length) {
+      var fechas = estado.datos.filas.map(function (r) { return r.fecha; }).filter(Boolean).sort();
+      if (fechas.length) {
+        de.min = ha.min = fechas[0];
+        de.max = ha.max = fechas[fechas.length - 1];
+      }
+      de.value = filtros.desde; ha.value = filtros.hasta;
+      de.onchange = function () { filtros.desde = de.value; refrescar(); };
+      ha.onchange = function () { filtros.hasta = ha.value; refrescar(); };
+    }
+    pintarDias();
+    resumenFiltros();
+  }
+  function resumenFiltros() {
+    var el = document.getElementById("f-resumen");
+    if (!el) return;
+    var total = estado.datos ? estado.datos.filas.length : 0;
+    var n = estado.filasFiltradas ? estado.filasFiltradas.length : total;
+    el.textContent = hayFiltros()
+      ? ("Mostrando " + n + " de " + total + " líneas")
+      : ("Sin filtros · " + total + " líneas del mes");
+  }
+  function limpiarFiltros() {
+    filtros = { departamento: "", seccion: "", item: "", dias: {}, desde: "", hasta: "" };
+    vistaTabla.texto = "";
+    var inp = document.getElementById("tabla-buscar");
+    if (inp) inp.value = "";
+    armarFiltros();
+    refrescar();
+  }
+
+  /* ---- tabla exploratoria: ordenable y con buscador ---- */
+  var COLUMNAS_TABLA = [
+    { campo: "item", titulo: "Ítem" },
+    { campo: "departamento", titulo: "Departamento" },
+    { campo: "seccion", titulo: "Segmento" },
+    { campo: "unidades", titulo: "Unidades", num: true },
+    { campo: "monto", titulo: "Monto", num: true },
+    { campo: "pctMonto", titulo: "% monto", num: true }
+  ];
+  var vistaTabla = { campo: "monto", asc: false, texto: "" };
+
+  function pintarTabla() {
+    var tabla = document.getElementById("tabla");
+    if (!tabla) return;
+    var todas = tablaExploradora(estado.filasFiltradas || []);
+    var texto = norm(vistaTabla.texto);
+    var visibles = texto
+      ? todas.filter(function (x) { return norm(x.item).indexOf(texto) > -1; })
+      : todas;
+    var c = vistaTabla.campo, asc = vistaTabla.asc;
+    visibles.sort(function (a, b) {
+      var va = a[c], vb = b[c];
+      if (typeof va === "string" || typeof vb === "string") {
+        return String(va || "").localeCompare(String(vb || ""), "es") * (asc ? 1 : -1);
+      }
+      return (va - vb) * (asc ? 1 : -1);
+    });
+    var tope = 100;
+    var mostradas = visibles.slice(0, tope);
+    var maxima = visibles.reduce(function (a, x) { return Math.max(a, x.pctMonto); }, 1) || 1;
+
+    var thead = tabla.querySelector("thead"), tbody = tabla.querySelector("tbody");
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+    var trh = document.createElement("tr");
+    COLUMNAS_TABLA.forEach(function (col) {
+      var th = document.createElement("th");
+      if (col.num) th.className = "num";
+      th.textContent = col.titulo;
+      if (vistaTabla.campo === col.campo) {
+        var fl = document.createElement("span");
+        fl.className = "fl";
+        fl.textContent = vistaTabla.asc ? "▲" : "▼";
+        th.appendChild(fl);
+      }
+      th.title = "Ordenar por " + col.titulo;
+      th.addEventListener("click", function () {
+        if (vistaTabla.campo === col.campo) vistaTabla.asc = !vistaTabla.asc;
+        else { vistaTabla.campo = col.campo; vistaTabla.asc = !col.num; }
+        pintarTabla();
+      });
+      trh.appendChild(th);
+    });
+    thead.appendChild(trh);
+
+    mostradas.forEach(function (x) {
+      var tr = document.createElement("tr");
+      function celda(txt, num) {
+        var td = document.createElement("td");
+        if (num) td.className = "num";
+        td.textContent = txt;
+        return td;
+      }
+      tr.appendChild(celda(x.item));
+      tr.appendChild(celda(x.departamento));
+      tr.appendChild(celda(String(x.seccion || "").toLowerCase()));
+      tr.appendChild(celda(miles(x.unidades), true));
+      tr.appendChild(celda(moneda(x.monto), true));
+      var tdPct = document.createElement("td");
+      tdPct.className = "num";
+      var barra = document.createElement("span");
+      barra.className = "barra-pct";
+      barra.style.width = Math.max(3, Math.round(x.pctMonto / maxima * 60)) + "px";
+      tdPct.appendChild(barra);
+      tdPct.appendChild(document.createTextNode(x.pctMonto.toFixed(1) + "%"));
+      tr.appendChild(tdPct);
+      tbody.appendChild(tr);
+    });
+
+    var sub = document.getElementById("tabla-sub");
+    if (sub) sub.textContent = hayFiltros() ? "Ítems con los filtros aplicados" : "Todos los ítems del mes";
+    var pie = document.getElementById("tabla-pie");
+    if (pie) {
+      var unidades = visibles.reduce(function (a, x) { return a + x.unidades; }, 0);
+      var monto = visibles.reduce(function (a, x) { return a + x.monto; }, 0);
+      pie.textContent = visibles.length + " ítems · " + miles(unidades) + " unidades · " + moneda(monto) +
+        (visibles.length > mostradas.length ? "  ·  se muestran los primeros " + mostradas.length : "");
+    }
   }
 
   /* ---- segunda zona: sabores desde el detalle del reporte ---- */
@@ -798,6 +1238,8 @@
     norm: norm, construirDatos: construirDatos, calcular: calcular,
     porDia: porDia, porTamano: porTamano, porSabor: porSabor, mejoresDias: mejoresDias,
     totales: totales, kpis: kpis, SABORES: SABORES,
+    departamentoDe: departamentoDe, DEPARTAMENTOS: DEPARTAMENTOS,
+    aplicarFiltros: aplicarFiltros, hayFiltros: hayFiltros, tablaExploradora: tablaExploradora,
     buscarEncabezado: buscarEncabezado, extraerSaboresDeMatriz: extraerSaboresDeMatriz,
     agruparSabores: agruparSabores, resumenSabores: resumenSabores
   };
@@ -823,6 +1265,10 @@
     }
     prepararZona("drop", "file", cargarArchivo);
     prepararZona("drop-sabores", "file-sabores", cargarSabores);
+    var bLimpiar = document.getElementById("f-limpiar");
+    if (bLimpiar) bLimpiar.addEventListener("click", limpiarFiltros);
+    var bBuscar = document.getElementById("tabla-buscar");
+    if (bBuscar) bBuscar.addEventListener("input", function () { vistaTabla.texto = bBuscar.value; pintarTabla(); });
 
     Array.prototype.forEach.call(document.querySelectorAll("#menu button"), function (b) {
       b.addEventListener("click", function () {
